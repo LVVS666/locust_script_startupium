@@ -1,4 +1,5 @@
 import json
+import random
 import ssl
 import time
 import os
@@ -27,7 +28,7 @@ class SocketTest(User):
             }
         ]
     }
-    data_cluster = {
+    data_other = {
         "id": "1",
         "jsonrpc": "2.0",
         "params": []}
@@ -64,7 +65,7 @@ class SocketTest(User):
         )
         raise RescheduleTask()  # Перезапланировать задачу для выполнения позже
 
-    @task(1)
+    @task(2)
     def login(self):
         # Сериализация JSON-объекта в строку
         data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
@@ -97,9 +98,76 @@ class SocketTest(User):
         except Exception as e:
             self.exception_request(start_time=start_time, name='login', e=e)
 
+    @task(1)
+    def get_cards(self):
+        zone_cards = ["YANDEX_DRIVE", "RUS_SBER"]
+        data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cards["method"] = "v1_webappCards"
+        data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
+        message_cards = json.dumps(data_cards)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cards)  # Отправка сообщения
+            response_cards = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cards, name='get_cards')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_cards', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_cards', e=e)
+
+    @task(1)
+    def get_orders(self):
+        data_orders = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_orders["method"] = "v1_webappOrders"
+        data_orders["params"] = [{"jwt_token": self.access_token}]
+        message_orders = json.dumps(data_orders)
+        start_time = time.time()
+        try:
+            self.ws.send(message_orders)  # Отправка сообщения
+            response_orders = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_orders, name='get_orders')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_orders', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_orders', e=e)
+
     @task(3)
+    def vendings(self):
+        data_vendings = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_vendings["method"] = "v1_webappVendings"
+        data_vendings["params"] = [{"id": randint(100, 500)}]
+        message_vendings = json.dumps(data_vendings)
+        start_time = time.time()
+        try:
+            self.ws.send(message_vendings)  # Отправка сообщения
+            response_vendings = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_vendings, name='vendings')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='vendings', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='vendings', e=e)
+
+    @task(3)
+    def vending_id(self):
+        vendings_id = [int(f'111{randint(0, 9)}'), int(f'1111{randint(0, 9)}')]
+        data_vending_id = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_vending_id["method"] = "v1_webappVendings"
+        data_vending_id["params"] = [{"id": random.choice(vendings_id)}]
+        message_vending_id = json.dumps(data_vending_id)
+        start_time = time.time()
+        try:
+            self.ws.send(message_vending_id)  # Отправка сообщения
+            response_vending_id = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_vending_id, name='vending_id')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='vending_id', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='vending_id', e=e)
+
+
+    @task(4)
     def locus_nearest_loctions(self):
-        data_cluster = self.data_cluster.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getNearestLocation"
         data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39)+ 0.6721449}]
         message_cluster = json.dumps(data_cluster)
@@ -113,9 +181,9 @@ class SocketTest(User):
         except Exception as e:
             self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
 
-    @task(3)
+    @task(4)
     def locus_get_nearest_cluster(self):
-        data_cluster = self.data_cluster.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getNearestCluster"
         data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
         message_cluster = json.dumps(data_cluster)
@@ -129,16 +197,16 @@ class SocketTest(User):
         except Exception as e:
             self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
 
-    @task(3)
+    @task(4)
     def locus_get_cluster(self):
-        data_cluster = self.data_cluster.copy() # Копируем data, чтобы избежать изменения оригинала
+        data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getClusters"
         data_cluster["params"] = [
             {"north_west":
                  {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
              "south_east":
                  {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
-             "zoom": randint(10, 17) }
+             "zoom": randint(10, 17)}
         ]
         message_cluster = json.dumps(data_cluster)
         start_time = time.time()
