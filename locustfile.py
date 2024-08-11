@@ -1,15 +1,20 @@
 import json
 import ssl
 import time
-from random import randint
+import os
 
+from random import randint
 from locust import User, task, between
 from locust.exception import RescheduleTask
 from websocket import create_connection, WebSocketConnectionClosedException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class SocketTest(User):
     wait_time = between(5, 6)  # Время ожидания между выполнением задач от 5 до 6 секунд
+    access_token = ''
     data_login = {
         "id": "1",
         "jsonrpc": "2.0",
@@ -30,7 +35,7 @@ class SocketTest(User):
     def on_start(self):
         # Инициализация WebSocket-соединения
         sslopt = {"cert_reqs": ssl.CERT_NONE}
-        self.ws = create_connection("wss://dev3partners.berizaryad.ru/ws", sslopt=sslopt)
+        self.ws = create_connection(os.getenv('url_socket'), sslopt=sslopt)
 
     def on_stop(self):
         # Закрытие соединения
@@ -83,6 +88,7 @@ class SocketTest(User):
             start_time = time.time()
             self.ws.send(message_sms)
             response_sms = self.ws.recv()
+            self.access_token = response_sms['result']['access_token']
             self.success_request(start_time=start_time, response=response_sms, name='confirm')
 
         except WebSocketConnectionClosedException as e:
@@ -92,7 +98,7 @@ class SocketTest(User):
             self.exception_request(start_time=start_time, name='login', e=e)
 
     @task(3)
-    def locus_nearest_loction(self):
+    def locus_nearest_loctions(self):
         data_cluster = self.data_cluster.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getNearestLocation"
         data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39)+ 0.6721449}]
@@ -101,11 +107,11 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
-            self.success_request(start_time=start_time, response=response_cluster, name='nearest_loction')
+            self.success_request(start_time=start_time, response=response_cluster, name='nearest_loctions')
         except WebSocketConnectionClosedException as e:
-            self.exception_request(start_time=start_time, name='nearest_loction', e=e)
+            self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
         except Exception as e:
-            self.exception_request(start_time=start_time, name='nearest_loction', e=e)
+            self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
 
     @task(3)
     def locus_get_nearest_cluster(self):
@@ -122,6 +128,28 @@ class SocketTest(User):
             self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
         except Exception as e:
             self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
+
+    @task(3)
+    def locus_get_cluster(self):
+        data_cluster = self.data_cluster.copy() # Копируем data, чтобы избежать изменения оригинала
+        data_cluster["method"] = "v1_getClusters"
+        data_cluster["params"] = [
+            {"north_west":
+                 {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
+             "south_east":
+                 {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
+             "zoom": randint(10, 17) }
+        ]
+        message_cluster = json.dumps(data_cluster)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cluster)  # Отправка сообщения
+            response_cluster = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cluster, name='get_cluster')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_cluster', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_cluster', e=e)
 
 
 # запуск из директории с файлом locustfile.py
