@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -14,6 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
+
 
 class SocketTest(User):
     wait_time = between(5, 6)  # Время ожидания между выполнением задач от 5 до 6 секунд
@@ -34,12 +36,21 @@ class SocketTest(User):
         "jsonrpc": "2.0",
         "params": []}
 
-
     def on_start(self):
         url_socket = os.getenv('url_socket')
         sslopt = {"cert_reqs": ssl.CERT_NONE}
-        self.ws = create_connection(url=url_socket, sslopt=sslopt)
-
+        sec_websocket_key = base64.b64encode(os.urandom(16)).decode('utf-8')
+        headers = {
+            'Connection': 'Upgrade',
+            'Upgrade': 'websocket',
+            'Sec-WebSocket-Version': '13',
+            'Sec-WebSocket-Key': sec_websocket_key,
+            'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits',
+            'Host': 'stagemobileapi.berizaryad.ru',
+            'Origin': 'https://example.com',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
+        self.ws = create_connection(url=url_socket, headers=headers, sslopt=sslopt)
 
     def on_stop(self):
         # Закрытие соединения
