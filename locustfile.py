@@ -36,6 +36,10 @@ class SocketTest(User):
         "jsonrpc": "2.0",
         "params": []}
 
+    def __init__(self, environment):
+        super().__init__(environment)
+        self.access_token = None
+
     def on_start(self):
         url_socket = os.getenv('url_socket')
         sslopt = {"cert_reqs": ssl.CERT_NONE}
@@ -79,105 +83,104 @@ class SocketTest(User):
         )
         raise RescheduleTask()  # Перезапланировать задачу для выполнения позже
 
-    # @task(2)
-    # def login(self):
-    #     # Сериализация JSON-объекта в строку
-    #     data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_login["method"] = "v1_webappLogin"
-    #     data_login["params"][0]['confirmation_type'] = "sms"
-    #     phone = f"7999666{randint(10,99)}{randint(10,99)}"
-    #     data_login["params"][0]["phone"] = phone
-    #     message_login = json.dumps(data_login)
-    #     start_time = time.time()  # Запись времени начала отправки сообщения
-    #     try:
-    #         self.ws.send(message_login)  # Отправка сообщения
-    #         response_login = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_login, name='login')
-    #
-    #         # Обработка второго сообщения для подтверждения
-    #         data_sms = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #         data_sms["method"] = "v1_webappConfirm"
-    #         data_sms["params"][0]['code'] = "0001"
-    #         data_sms["params"][0]["phone"] = phone
-    #         message_sms = json.dumps(data_sms)
-    #         start_time = time.time()
-    #         self.ws.send(message_sms)
-    #         response_sms = self.ws.recv()
-    #         self.access_token = response_sms['result']['access_token']
-    #         self.success_request(start_time=start_time, response=response_sms, name='confirm')
-    #
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='login', e=e)
-    #
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='login', e=e)
-    #
-    # @task(1)
-    # def get_cards(self):
-    #     zone_cards = ["YANDEX_DRIVE", "RUS_SBER"]
-    #     data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_cards["method"] = "v1_webappCards"
-    #     data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
-    #     message_cards = json.dumps(data_cards)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_cards)  # Отправка сообщения
-    #         response_cards = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_cards, name='get_cards')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='get_cards', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='get_cards', e=e)
-    #
-    # @task(1)
-    # def get_orders(self):
-    #     data_orders = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_orders["method"] = "v1_webappOrders"
-    #     data_orders["params"] = [{"jwt_token": self.access_token}]
-    #     message_orders = json.dumps(data_orders)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_orders)  # Отправка сообщения
-    #         response_orders = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_orders, name='get_orders')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='get_orders', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='get_orders', e=e)
-    #
-    # @task(3)
-    # def vendings(self):
-    #     data_vendings = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_vendings["method"] = "v1_webappVendings"
-    #     data_vendings["params"] = [{"id": randint(100, 500)}]
-    #     message_vendings = json.dumps(data_vendings)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_vendings)  # Отправка сообщения
-    #         response_vendings = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_vendings, name='vendings')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='vendings', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='vendings', e=e)
-    #
-    # @task(3)
-    # def vending_id(self):
-    #     vendings_id = [int(f'111{randint(0, 9)}'), int(f'1111{randint(0, 9)}')]
-    #     data_vending_id = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_vending_id["method"] = "v1_webappVendings"
-    #     data_vending_id["params"] = [{"id": random.choice(vendings_id)}]
-    #     message_vending_id = json.dumps(data_vending_id)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_vending_id)  # Отправка сообщения
-    #         response_vending_id = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_vending_id, name='vending_id')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='vending_id', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='vending_id', e=e)
+    @task(2)
+    def login(self):
+        # Сериализация JSON-объекта в строку
+        data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_login["method"] = "v1_webappLogin"
+        data_login["params"][0]['confirmation_type'] = "sms"
+        phone = f"7999666{randint(10,99)}{randint(10,99)}"
+        data_login["params"][0]["phone"] = phone
+        message_login = json.dumps(data_login)
+        start_time = time.time()  # Запись времени начала отправки сообщения
+        try:
+            self.ws.send(message_login)  # Отправка сообщения
+            response_login = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_login, name='login')
 
+            # Обработка второго сообщения для подтверждения
+            data_sms = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
+            data_sms["method"] = "v1_webappConfirm"
+            data_sms["params"][0]['code'] = "0001"
+            data_sms["params"][0]["phone"] = phone
+            message_sms = json.dumps(data_sms)
+            start_time = time.time()
+            self.ws.send(message_sms)
+            response_sms = self.ws.recv()
+            self.access_token = response_sms['result']['access_token']
+            self.success_request(start_time=start_time, response=response_sms, name='confirm')
+
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='login', e=e)
+
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='login', e=e)
+
+    @task(2)
+    def get_cards(self):
+        zone_cards = ["YANDEX_DRIVE", "RUS_SBER"]
+        data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cards["method"] = "v1_webappCards"
+        data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
+        message_cards = json.dumps(data_cards)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cards)  # Отправка сообщения
+            response_cards = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cards, name='get_cards')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_cards', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_cards', e=e)
+
+    @task(2)
+    def get_orders(self):
+        data_orders = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_orders["method"] = "v1_webappOrders"
+        data_orders["params"] = [{"jwt_token": self.access_token}]
+        message_orders = json.dumps(data_orders)
+        start_time = time.time()
+        try:
+            self.ws.send(message_orders)  # Отправка сообщения
+            response_orders = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_orders, name='get_orders')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_orders', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_orders', e=e)
+
+    @task(2)
+    def vendings(self):
+        data_vendings = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_vendings["method"] = "v1_webappVendings"
+        data_vendings["params"] = [{"id": randint(100, 500)}]
+        message_vendings = json.dumps(data_vendings)
+        start_time = time.time()
+        try:
+            self.ws.send(message_vendings)  # Отправка сообщения
+            response_vendings = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_vendings, name='vendings')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='vendings', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='vendings', e=e)
+
+    @task(3)
+    def vending_id(self):
+        vendings_id = [int(f'111{randint(0, 9)}'), int(f'1111{randint(0, 9)}')]
+        data_vending_id = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_vending_id["method"] = "v1_webappVendings"
+        data_vending_id["params"] = [{"id": random.choice(vendings_id)}]
+        message_vending_id = json.dumps(data_vending_id)
+        start_time = time.time()
+        try:
+            self.ws.send(message_vending_id)  # Отправка сообщения
+            response_vending_id = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_vending_id, name='vending_id')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='vending_id', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='vending_id', e=e)
 
     @task(1)
     def locus_nearest_loctions(self):
@@ -357,6 +360,63 @@ class SocketTest(User):
                 self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
             except Exception as e:
                 self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
+
+    @task(1)
+    def subscribe(self):
+        data_subscribe = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_subscribe["method"] = "v1_subscribe"
+        data_subscribe["params"] = ["webappSubscription", self.access_token]
+        message_subscribe = json.dumps(data_subscribe)
+        start_time = time.time()
+        try:
+            self.ws.send(message_subscribe)  # Отправка сообщения
+            response_subscribe = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_subscribe, name='subscribe')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='subscribe', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='subscribe', e=e)
+
+    @task(1)
+    def create_cards(self):
+        zone_cards = ["YANDEX_DRIVE", "RUS_SBER"]
+        data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cards["method"] = "v1_webappCardsCreate"
+        data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
+        message_cards = json.dumps(data_cards)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cards)  # Отправка сообщения
+            response_cards = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cards, name='create_cards')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='create_cards', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='create_cards', e=e)
+
+    @task(1)
+    def short_link(self):
+        data_short_link = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_short_link["method"] = "v1_webappShortLink"
+        short_link = os.getenv('dev3_short_link')[:83] + str(random.randint(0, 9)) + os.getenv('dev3_short_link')[85:]
+        data_short_link["params"] = [
+            {
+                "short_link": short_link
+            }]
+        message_short_link = json.dumps(data_short_link)
+        start_time = time.time()
+        try:
+            self.ws.send(message_short_link)  # Отправка сообщения
+            response_short_link = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_short_link, name='short_link')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='short_link', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='short_link', e=e)
+
+
+
+
 
 # запуск из директории с файлом locustfile.py
 # locust -f locustfile.py
