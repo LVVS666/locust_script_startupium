@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import ssl
 import time
 from random import randint
@@ -20,6 +21,7 @@ class SocketTest(User):
         "jsonrpc": "2.0",
         "params": []
     }
+    filter_machine_type = [["LDX", "nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"], ["ReLink","relink_outdoor","universal_outdoor"]]
 
     def __init__(self, environment):
         super().__init__(environment)
@@ -126,7 +128,7 @@ class SocketTest(User):
             "latitude": randint(55, 58) + 0.8631039,
             "longitude": randint(37, 39) + 0.6721449,
             "filters": {
-                "machine_type": ["LDX", "nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                "machine_type": random.choice(self.filter_machine_type),
                 "status": "ok",
                 "empty_cells": 1
             }
@@ -139,7 +141,7 @@ class SocketTest(User):
         data["method"] = "v1_getNearestCluster"
         data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,
                            "filters": {
-                               "machine_type": ["LDX", "nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                               "machine_type": random.choice(self.filter_machine_type),
                                "status": "ok"
                            }}]
         self.send_message(data, 'filter_locus_get_nearest_cluster')
@@ -155,7 +157,7 @@ class SocketTest(User):
                             "longitude": randint(37, 39) + 0.7548840327148},
              "zoom": randint(10, 17),
              "filters": {
-                 "machine_type": ["LDX", "nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                 "machine_type": random.choice(self.filter_machine_type),
                  "status": "ok"
              }}
         ]
@@ -193,3 +195,4 @@ class SocketTest(User):
              "filters": {}}
         ]
         self.send_message(data, 'filter_empty_locus_get_cluster')
+
