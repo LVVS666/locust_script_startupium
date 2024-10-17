@@ -25,6 +25,7 @@ class SocketTest(User):
 
     def __init__(self, environment):
         super().__init__(environment)
+        self.number_user = 0
         self.access_token = None
         self.ws = None
         self.lock = False  # Переменная для блокировки одновременных запросов
@@ -42,6 +43,8 @@ class SocketTest(User):
     def on_start(self):
         # Устанавливаем соединение при старте
         self.connect_socket()
+        self.number_user += 1
+        logging.info(f'Новый пользователь {self.number_user}')
 
     def on_stop(self):
         if self.ws:
@@ -93,106 +96,106 @@ class SocketTest(User):
         finally:
             self.lock = False  # Разблокируем ресурс
 
-    @task(1)
-    def locus_nearest_locations(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestLocation"
-        data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
-        self.send_message(data, 'nearest_locations')
+    # @task(1)
+    # def locus_nearest_locations(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestLocation"
+    #     data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
+    #     self.send_message(data, 'nearest_locations')
 
-    @task(2)
-    def locus_get_nearest_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestCluster"
-        data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
-        self.send_message(data, 'get_nearest_cluster')
+    # @task(2)
+    # def locus_get_nearest_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestCluster"
+    #     data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
+    #     self.send_message(data, 'get_nearest_cluster')
 
-    @task(3)
-    def locus_get_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getClusters"
-        data["params"] = [
-            {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
-                            "longitude": randint(37, 39) + 0.49739196728512},
-             "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
-                            "longitude": randint(37, 39) + 0.7548840327148},
-             "zoom": randint(10, 17)}
-        ]
-        self.send_message(data, 'get_cluster')
+    # @task(3)
+    # def locus_get_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getClusters"
+    #     data["params"] = [
+    #         {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
+    #                         "longitude": randint(37, 39) + 0.49739196728512},
+    #          "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
+    #                         "longitude": randint(37, 39) + 0.7548840327148},
+    #          "zoom": randint(10, 17)}
+    #     ]
+    #     self.send_message(data, 'get_cluster')
 
-    @task(1)
-    def filter_locus_nearest_locations(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestLocation"
-        data["params"] = [{
-            "latitude": randint(55, 58) + 0.8631039,
-            "longitude": randint(37, 39) + 0.6721449,
-            "filters": {
-                "machine_type": random.choice(self.filter_machine_type),
-                "status": "ok",
-                "empty_cells": 1
-            }
-        }]
-        self.send_message(data, 'filter_nearest_locations')
+    # @task(1)
+    # def filter_locus_nearest_locations(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestLocation"
+    #     data["params"] = [{
+    #         "latitude": randint(55, 58) + 0.8631039,
+    #         "longitude": randint(37, 39) + 0.6721449,
+    #         "filters": {
+    #             "machine_type": random.choice(self.filter_machine_type),
+    #             "status": "ok",
+    #             "empty_cells": 1
+    #         }
+    #     }]
+    #     self.send_message(data, 'filter_nearest_locations')
 
-    @task(2)
-    def filter_locus_get_nearest_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestCluster"
-        data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,
-                           "filters": {
-                               "machine_type": random.choice(self.filter_machine_type),
-                               "status": "ok"
-                           }}]
-        self.send_message(data, 'filter_locus_get_nearest_cluster')
+    # @task(2)
+    # def filter_locus_get_nearest_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestCluster"
+    #     data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,
+    #                        "filters": {
+    #                            "machine_type": random.choice(self.filter_machine_type),
+    #                            "status": "ok"
+    #                        }}]
+    #     self.send_message(data, 'filter_locus_get_nearest_cluster')
 
-    @task(3)
-    def filter_locus_get_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getClusters"
-        data["params"] = [
-            {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
-                            "longitude": randint(37, 39) + 0.49739196728512},
-             "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
-                            "longitude": randint(37, 39) + 0.7548840327148},
-             "zoom": randint(10, 17),
-             "filters": {
-                 "machine_type": random.choice(self.filter_machine_type),
-                 "status": "ok"
-             }}
-        ]
-        self.send_message(data, 'filter_locus_get_cluster')
+    # @task(3)
+    # def filter_locus_get_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getClusters"
+    #     data["params"] = [
+    #         {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
+    #                         "longitude": randint(37, 39) + 0.49739196728512},
+    #          "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
+    #                         "longitude": randint(37, 39) + 0.7548840327148},
+    #          "zoom": randint(10, 17),
+    #          "filters": {
+    #              "machine_type": random.choice(self.filter_machine_type),
+    #              "status": "ok"
+    #          }}
+    #     ]
+    #     self.send_message(data, 'filter_locus_get_cluster')
 
-    @task(1)
-    def filter_empty_locus_nearest_locations(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestLocation"
-        data["params"] = [{
-            "latitude": randint(55, 58) + 0.8631039,
-            "longitude": randint(37, 39) + 0.6721449,
-            "filters": {}
-        }]
-        self.send_message(data, 'filter_empty_locus_nearest_locations')
+    # @task(1)
+    # def filter_empty_locus_nearest_locations(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestLocation"
+    #     data["params"] = [{
+    #         "latitude": randint(55, 58) + 0.8631039,
+    #         "longitude": randint(37, 39) + 0.6721449,
+    #         "filters": {}
+    #     }]
+    #     self.send_message(data, 'filter_empty_locus_nearest_locations')
 
-    @task(2)
-    def filter_empty_locus_get_nearest_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getNearestCluster"
-        data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,
-                           "filters": {}}]
-        self.send_message(data, 'filter_empty_locus_get_nearest_cluster')
+    # @task(2)
+    # def filter_empty_locus_get_nearest_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getNearestCluster"
+    #     data["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,
+    #                        "filters": {}}]
+    #     self.send_message(data, 'filter_empty_locus_get_nearest_cluster')
 
-    @task(3)
-    def filter_empty_locus_get_cluster(self):
-        data = self.data_other.copy()
-        data["method"] = "v1_getClusters"
-        data["params"] = [
-            {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
-                            "longitude": randint(37, 39) + 0.49739196728512},
-             "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
-                            "longitude": randint(37, 39) + 0.7548840327148},
-             "zoom": randint(10, 17),
-             "filters": {}}
-        ]
-        self.send_message(data, 'filter_empty_locus_get_cluster')
+    # @task(3)
+    # def filter_empty_locus_get_cluster(self):
+    #     data = self.data_other.copy()
+    #     data["method"] = "v1_getClusters"
+    #     data["params"] = [
+    #         {"north_west": {"latitude": randint(55, 59) + 0.88584975247564,
+    #                         "longitude": randint(37, 39) + 0.49739196728512},
+    #          "south_east": {"latitude": randint(55, 59) + 0.62758487182953,
+    #                         "longitude": randint(37, 39) + 0.7548840327148},
+    #          "zoom": randint(10, 17),
+    #          "filters": {}}
+    #     ]
+    #     self.send_message(data, 'filter_empty_locus_get_cluster')
 
