@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class SocketTest(User):
-    wait_time = between(1, 2)  # Время ожидания между выполнением задач от и до
+    wait_time = between(4, 5)  # Время ожидания между выполнением задач от и до
     data_login = {
         "id": 1,
         "jsonrpc": "2.0",
@@ -51,7 +51,11 @@ class SocketTest(User):
 
     def on_stop(self):
         # Закрытие соединения
-        self.ws.close()
+        if self.ws:
+            print("Closing WebSocket connection...")
+            self.ws.close()
+        else:
+            print("WebSocket connection is already closed.")
 
     def success_request(self, start_time, response, name):
         total_time = int((time.time() - start_time) * 1000)  # Время в миллисекундах
@@ -76,7 +80,17 @@ class SocketTest(User):
         )
         raise RescheduleTask()  # Перезапланировать задачу для выполнения позже
 
-    @task(3)
+    @task
+    def perform_sequence(self):
+        # 1. Логин
+        self.login()
+
+        # 2. Подписка
+        self.subscribe()
+
+        # 3. Создание карт
+        self.create_cards()
+
     def login(self):
         # Сериализация JSON-объекта в строку
         data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
@@ -92,13 +106,12 @@ class SocketTest(User):
             self.success_request(start_time=start_time, response=response_login, name='login')
             response_data = json.loads(response_login)
             self.access_token = response_data['result']['access_token']
-            time.sleep(100)
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='login', e=e)
         except Exception as e:
             self.exception_request(start_time=start_time, name='login', e=e)
 
-    @task(2)
+
     def subscribe(self):
         data_subscribe = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_subscribe["method"] = "v1_subscribe"
@@ -108,14 +121,13 @@ class SocketTest(User):
         try:
             self.ws.send(message_subscribe)  # Отправка сообщения
             response_subscribe = self.ws.recv()  # Получение ответа
-            time.sleep(100)
             self.success_request(start_time=start_time, response=response_subscribe, name='subscribe')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='subscribe', e=e)
         except Exception as e:
             self.exception_request(start_time=start_time, name='subscribe', e=e)
 
-    @task(1)
+
     def create_cards(self):
         zone_cards = ["RUS_SBER", "RUS_SBER"]
         data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
@@ -126,8 +138,16 @@ class SocketTest(User):
         try:
             self.ws.send(message_cards)  # Отправка сообщения
             response_cards = self.ws.recv()  # Получение ответа
-            time.sleep(120)
             self.success_request(start_time=start_time, response=response_cards, name='create_cards')
+            logging.info("Ожидаем второй ответ из сокета...")
+            while True:
+                try:
+                    second_response = self.ws.recv()
+                    print("Received second response:", second_response)
+                    break  # Прерываем цикл, когда получили ответ
+                except WebSocketConnectionClosedException:
+                    logging.error("WebSocket connection closed while waiting for second response.")
+                    break  # Прерываем цикл, если соединение закрыто
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='create_cards', e=e)
         except Exception as e:
