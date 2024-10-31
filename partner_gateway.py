@@ -79,7 +79,7 @@ class SocketTest(User):
         # Открыть WebSocket соединение
         # url_socket = os.getenv('url_socket')
         self.ws = create_connection(
-            url="wss://stagepartners.berizaryad.ru/ws",
+            url="wss://devpartners.berizaryad.ru/ws",
             sslopt={
                 "ca_certs": certifi.where(),
                 "cert_reqs": ssl.CERT_REQUIRED
@@ -87,12 +87,25 @@ class SocketTest(User):
         )
 
         try:
-            # 1. Логин
-            self.login()
-            # 2. Подписка
-            self.subscribe()
-            # 3. Создание карт
-            self.create_cards()
+            # Тесты для локуса
+            self.locus_nearest_loctions()
+            time.sleep(1)
+            self.locus_get_nearest_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.filter_locus_nearest_loctions()
+            self.filter_locus_get_nearest_cluster()
+            self.filter_locus_get_cluster()
+            time.sleep(1)
+            self.filter_empty_locus_nearest_loctions()
+            self.filter_empty_locus_get_nearest_cluster()
+            self.filter_empty_locus_get_cluster()
+            # # 1. Логин
+            # self.login()
+            # # 2. Подписка
+            # self.subscribe()
+            # # 3. Создание карт
+            # self.create_cards()
 
         finally:
             # Закрыть соединение после выполнения всех задач
@@ -105,69 +118,69 @@ class SocketTest(User):
 
         self.is_task_completed = True  # Установить флаг после выполнения задач
 
-    def login(self):
-        data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
-        phone = f"7999{randint(100,999)}{randint(1000,9999)}"
-        data_login["params"][0]["phone"] = phone
-        message_login = json.dumps(data_login)
-        start_time = time.time()  # Запись времени начала отправки сообщения
-        try:
-            self.ws.send(message_login)  # Отправка сообщения
-            response_login = self.ws.recv()  # Получение ответа
-            self.success_request(start_time=start_time, response=response_login, name='login')
-            response_data = json.loads(response_login)
-            self.access_token = response_data['result']['access_token']
-            logging.info("Авторизация успешна")
-        except WebSocketConnectionClosedException as e:
-            self.exception_request(start_time=start_time, name='login', e=e)
-        except Exception as e:
-            logging.info(f"Ошибка авторизации")
-            self.exception_request(start_time=start_time, name='login', e=e)
-
-    def subscribe(self):
-        data_subscribe = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-        data_subscribe["method"] = "v1_subscribe"
-        data_subscribe["params"] = ["webappSubscription", self.access_token]
-        message_subscribe = json.dumps(data_subscribe)
-        start_time = time.time()
-        try:
-            self.ws.send(message_subscribe)  # Отправка сообщения
-            response_subscribe = self.ws.recv()  # Получение ответа
-            self.success_request(start_time=start_time, response=response_subscribe, name='subscribe')
-            logging.info("Подписка успешна")
-        except WebSocketConnectionClosedException as e:
-            self.exception_request(start_time=start_time, name='subscribe', e=e)
-        except Exception as e:
-            logging.info("Ошибка подписки")
-            self.exception_request(start_time=start_time, name='subscribe', e=e)
-
-    def create_cards(self):
-        zone_cards = ["RUS_SBER", "RUS_SBER"]
-        data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-        data_cards["method"] = "v1_webappCardsCreate"
-        data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
-        message_cards = json.dumps(data_cards)
-        start_time = time.time()
-        try:
-            self.ws.send(message_cards)  # Отправка сообщения
-            response_cards = self.ws.recv()  # Получение ответа
-            self.success_request(start_time=start_time, response=response_cards, name='create_cards')
-            logging.info("Карта создана")
-            logging.info("Ожидаем второй ответ из сокета...")
-            while True:
-                try:
-                    second_response = self.ws.recv()
-                    logging.info("Received second response: %s", second_response)
-                    logging.info("Ссылка на привязку карты получена")
-                    break  # Прерываем цикл, когда получили ответ
-                except WebSocketConnectionClosedException:
-                    logging.error("WebSocket connection closed while waiting for second response.")
-                    break  # Прерываем цикл, если соединение закрыто
-        except WebSocketConnectionClosedException as e:
-            self.exception_request(start_time=start_time, name='create_cards', e=e)
-        except Exception as e:
-            logging.info("Ошибка привязки карты")
-            self.exception_request(start_time=start_time, name='create_cards', e=e)
+    # def login(self):
+    #     data_login = self.data_login.copy()  # Копируем data, чтобы избежать изменения оригинала
+    #     phone = f"7999{randint(100,999)}{randint(1000,9999)}"
+    #     data_login["params"][0]["phone"] = phone
+    #     message_login = json.dumps(data_login)
+    #     start_time = time.time()  # Запись времени начала отправки сообщения
+    #     try:
+    #         self.ws.send(message_login)  # Отправка сообщения
+    #         response_login = self.ws.recv()  # Получение ответа
+    #         self.success_request(start_time=start_time, response=response_login, name='login')
+    #         response_data = json.loads(response_login)
+    #         self.access_token = response_data['result']['access_token']
+    #         logging.info("Авторизация успешна")
+    #     except WebSocketConnectionClosedException as e:
+    #         self.exception_request(start_time=start_time, name='login', e=e)
+    #     except Exception as e:
+    #         logging.info(f"Ошибка авторизации")
+    #         self.exception_request(start_time=start_time, name='login', e=e)
+    #
+    # def subscribe(self):
+    #     data_subscribe = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+    #     data_subscribe["method"] = "v1_subscribe"
+    #     data_subscribe["params"] = ["webappSubscription", self.access_token]
+    #     message_subscribe = json.dumps(data_subscribe)
+    #     start_time = time.time()
+    #     try:
+    #         self.ws.send(message_subscribe)  # Отправка сообщения
+    #         response_subscribe = self.ws.recv()  # Получение ответа
+    #         self.success_request(start_time=start_time, response=response_subscribe, name='subscribe')
+    #         logging.info("Подписка успешна")
+    #     except WebSocketConnectionClosedException as e:
+    #         self.exception_request(start_time=start_time, name='subscribe', e=e)
+    #     except Exception as e:
+    #         logging.info("Ошибка подписки")
+    #         self.exception_request(start_time=start_time, name='subscribe', e=e)
+    #
+    # def create_cards(self):
+    #     zone_cards = ["RUS_SBER", "RUS_SBER"]
+    #     data_cards = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+    #     data_cards["method"] = "v1_webappCardsCreate"
+    #     data_cards["params"] = [{"jwt_token": self.access_token, "zone": random.choice(zone_cards)}]
+    #     message_cards = json.dumps(data_cards)
+    #     start_time = time.time()
+    #     try:
+    #         self.ws.send(message_cards)  # Отправка сообщения
+    #         response_cards = self.ws.recv()  # Получение ответа
+    #         self.success_request(start_time=start_time, response=response_cards, name='create_cards')
+    #         logging.info("Карта создана")
+    #         logging.info("Ожидаем второй ответ из сокета...")
+    #         while True:
+    #             try:
+    #                 second_response = self.ws.recv()
+    #                 logging.info("Received second response: %s", second_response)
+    #                 logging.info("Ссылка на привязку карты получена")
+    #                 break  # Прерываем цикл, когда получили ответ
+    #             except WebSocketConnectionClosedException:
+    #                 logging.error("WebSocket connection closed while waiting for second response.")
+    #                 break  # Прерываем цикл, если соединение закрыто
+    #     except WebSocketConnectionClosedException as e:
+    #         self.exception_request(start_time=start_time, name='create_cards', e=e)
+    #     except Exception as e:
+    #         logging.info("Ошибка привязки карты")
+    #         self.exception_request(start_time=start_time, name='create_cards', e=e)
 
 
     # @task(2)
@@ -236,188 +249,187 @@ class SocketTest(User):
     #     except Exception as e:
     #         self.exception_request(start_time=start_time, name='vending_id', e=e)
 
-    # @task(1)
-    # def locus_nearest_loctions(self):
-    #     data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_cluster["method"] = "v1_getNearestLocation"
-    #     data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39)+ 0.6721449}]
-    #     message_cluster = json.dumps(data_cluster)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_cluster)  # Отправка сообщения
-    #         response_cluster = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_cluster, name='nearest_loctions')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
 
-    # @task(2)
-    # def locus_get_nearest_cluster(self):
-    #     data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #     data_cluster["method"] = "v1_getNearestCluster"
-    #     data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
-    #     message_cluster = json.dumps(data_cluster)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_cluster)  # Отправка сообщения
-    #         response_cluster = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_cluster, name='get_nearest_cluster')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
-    #
-    # @task(3)
-    # def locus_get_cluster(self):
-    #     data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
-    #     data_cluster["method"] = "v1_getClusters"
-    #     data_cluster["params"] = [
-    #         {"north_west":
-    #              {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
-    #          "south_east":
-    #              {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
-    #          "zoom": randint(10, 17)}
-    #     ]
-    #     message_cluster = json.dumps(data_cluster)
-    #     start_time = time.time()
-    #     try:
-    #         self.ws.send(message_cluster)  # Отправка сообщения
-    #         response_cluster = self.ws.recv()  # Получение ответа
-    #         self.success_request(start_time=start_time, response=response_cluster, name='get_cluster')
-    #     except WebSocketConnectionClosedException as e:
-    #         self.exception_request(start_time=start_time, name='get_cluster', e=e)
-    #     except Exception as e:
-    #         self.exception_request(start_time=start_time, name='get_cluster', e=e)
+    def locus_nearest_loctions(self):
+        data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cluster["method"] = "v1_getNearestLocation"
+        data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39)+ 0.6721449}]
+        message_cluster = json.dumps(data_cluster)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cluster)  # Отправка сообщения
+            response_cluster = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cluster, name='nearest_loctions')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
 
 
-    # @task(1)
-    # def filter_locus_nearest_loctions(self):
-    #         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getNearestLocation"
-    #         data_cluster["params"] = [{
-    #             "latitude": randint(55, 58) + 0.8631039,
-    #             "longitude": randint(37, 39)+ 0.6721449,
-    #             "filters":{
-    #                 "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
-    #                 "status":"ok",
-    #                 "empty_cells":1}}]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_nearest_loctions')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_nearest_loctions', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_nearest_loctions', e=e)
+    def locus_get_nearest_cluster(self):
+        data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+        data_cluster["method"] = "v1_getNearestCluster"
+        data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
+        message_cluster = json.dumps(data_cluster)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cluster)  # Отправка сообщения
+            response_cluster = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cluster, name='get_nearest_cluster')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
 
-    # @task(2)
-    # def filter_locus_get_nearest_cluster(self):
-    #         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getNearestCluster"
-    #         data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,  "filters":{
-    #                                                 "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
-    #                                                 "status":"ok"
-    #             }}]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_get_nearest_cluster')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_get_nearest_cluster', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_get_nearest_cluster', e=e)
 
-    # @task(3)
-    # def filter_locus_get_cluster(self):
-    #         data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getClusters"
-    #         data_cluster["params"] = [
-    #             {"north_west":
-    #                  {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
-    #              "south_east":
-    #                  {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
-    #              "zoom": randint(10, 17), "filters":{
-    #                                                 "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
-    #                                                 "status":"ok"
-    #             }}
-    #         ]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_get_cluster')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_get_cluster', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_locus_get_cluster', e=e)
-
-    # @task(1)
-    # def filter_empty_locus_nearest_loctions(self):
-    #         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getNearestLocation"
-    #         data_cluster["params"] = [{
-    #             "latitude": randint(55, 58) + 0.8631039,
-    #             "longitude": randint(37, 39)+ 0.6721449,
-    #             "filters":{}}]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_nearest_loctions')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_nearest_loctions', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_nearest_loctions', e=e)
-    #
-    # @task(2)
-    # def filter_empty_locus_get_nearest_cluster(self):
-    #         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getNearestCluster"
-    #         data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,  "filters":{}}]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_get_nearest_cluster')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_get_nearest_cluster', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_get_nearest_cluster', e=e)
-    #
-    # @task(3)
-    # def filter_empty_locus_get_cluster(self):
-    #         data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
-    #         data_cluster["method"] = "v1_getClusters"
-    #         data_cluster["params"] = [
-    #             {"north_west":
-    #                  {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
-    #              "south_east":
-    #                  {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
-    #              "zoom": randint(10, 17), "filters":{
-    #             }}
-    #         ]
-    #         message_cluster = json.dumps(data_cluster)
-    #         start_time = time.time()
-    #         try:
-    #             self.ws.send(message_cluster)  # Отправка сообщения
-    #             response_cluster = self.ws.recv()  # Получение ответа
-    #             self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_get_cluster')
-    #         except WebSocketConnectionClosedException as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
-    #         except Exception as e:
-    #             self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
+    def locus_get_cluster(self):
+        data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
+        data_cluster["method"] = "v1_getClusters"
+        data_cluster["params"] = [
+            {"north_west":
+                 {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
+             "south_east":
+                 {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
+             "zoom": randint(10, 17)}
+        ]
+        message_cluster = json.dumps(data_cluster)
+        start_time = time.time()
+        try:
+            self.ws.send(message_cluster)  # Отправка сообщения
+            response_cluster = self.ws.recv()  # Получение ответа
+            self.success_request(start_time=start_time, response=response_cluster, name='get_cluster')
+        except WebSocketConnectionClosedException as e:
+            self.exception_request(start_time=start_time, name='get_cluster', e=e)
+        except Exception as e:
+            self.exception_request(start_time=start_time, name='get_cluster', e=e)
 
 
 
-    # @task(1)
+    def filter_locus_nearest_loctions(self):
+            data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getNearestLocation"
+            data_cluster["params"] = [{
+                "latitude": randint(55, 58) + 0.8631039,
+                "longitude": randint(37, 39)+ 0.6721449,
+                "filters":{
+                    "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                    "status":"ok",
+                    "empty_cells":1}}]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_nearest_loctions')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_locus_nearest_loctions', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_locus_nearest_loctions', e=e)
+
+
+    def filter_locus_get_nearest_cluster(self):
+            data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getNearestCluster"
+            data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,  "filters":{
+                                                    "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                                                    "status":"ok"
+                }}]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_get_nearest_cluster')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_locus_get_nearest_cluster', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_locus_get_nearest_cluster', e=e)
+
+
+    def filter_locus_get_cluster(self):
+            data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getClusters"
+            data_cluster["params"] = [
+                {"north_west":
+                     {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
+                 "south_east":
+                     {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
+                 "zoom": randint(10, 17), "filters":{
+                                                    "machine_type": ["LDX","nas_outdoor", "nas_rus", "NAS", "WIN", "WIN_GEN2"],
+                                                    "status":"ok"
+                }}
+            ]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_locus_get_cluster')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_locus_get_cluster', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_locus_get_cluster', e=e)
+
+
+    def filter_empty_locus_nearest_loctions(self):
+            data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getNearestLocation"
+            data_cluster["params"] = [{
+                "latitude": randint(55, 58) + 0.8631039,
+                "longitude": randint(37, 39)+ 0.6721449,
+                "filters":{}}]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_nearest_loctions')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_nearest_loctions', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_nearest_loctions', e=e)
+
+
+    def filter_empty_locus_get_nearest_cluster(self):
+            data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getNearestCluster"
+            data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449,  "filters":{}}]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_get_nearest_cluster')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_get_nearest_cluster', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_get_nearest_cluster', e=e)
+
+
+    def filter_empty_locus_get_cluster(self):
+            data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
+            data_cluster["method"] = "v1_getClusters"
+            data_cluster["params"] = [
+                {"north_west":
+                     {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
+                 "south_east":
+                     {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
+                 "zoom": randint(10, 17), "filters":{
+                }}
+            ]
+            message_cluster = json.dumps(data_cluster)
+            start_time = time.time()
+            try:
+                self.ws.send(message_cluster)  # Отправка сообщения
+                response_cluster = self.ws.recv()  # Получение ответа
+                self.success_request(start_time=start_time, response=response_cluster, name='filter_empty_locus_get_cluster')
+            except WebSocketConnectionClosedException as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
+            except Exception as e:
+                self.exception_request(start_time=start_time, name='filter_empty_locus_get_cluster', e=e)
+
+
+
     # def short_link(self):
     #     data_short_link = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
     #     data_short_link["method"] = "v1_webappShortLink"
