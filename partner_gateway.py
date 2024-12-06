@@ -5,7 +5,7 @@ import ssl
 import time
 import certifi
 
-from random import randint
+from random import randint, choice
 from locust import User, task, between
 from locust.exception import RescheduleTask
 from websocket import create_connection, WebSocketConnectionClosedException
@@ -32,6 +32,12 @@ class SocketTest(User):
         "jsonrpc": "2.0",
         "params": []
     }
+    base_coordinates = [
+        {"latitude": 55.8631039, "longitude": 39.6721449},  # Moscow
+        {"latitude": 59.9342802, "longitude": 30.3350986},  # Saint Petersburg
+        {"latitude": 56.0152834, "longitude": 92.8932476},  # Krasnoyarsk
+        {"latitude": 55.0083526, "longitude": 82.9357327}  # Novosibirsk
+    ]
 
     def __init__(self, environment):
         super().__init__(environment)
@@ -78,7 +84,7 @@ class SocketTest(User):
         # Открыть WebSocket соединение
         # url_socket = os.getenv('url_socket')
         self.ws = create_connection(
-            url="wss://devpartners.berizaryad.ru/ws",
+            url="wss://perfpartners.berizaryad.ru/ws",
             sslopt={
                 "ca_certs": certifi.where(),
                 "cert_reqs": ssl.CERT_REQUIRED
@@ -89,16 +95,54 @@ class SocketTest(User):
             # Тесты для локуса
             self.locus_nearest_loctions()
             time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
             self.locus_get_nearest_cluster()
             self.locus_get_cluster()
             time.sleep(1)
-            self.filter_locus_nearest_loctions()
-            self.filter_locus_get_nearest_cluster()
-            self.filter_locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
             time.sleep(1)
-            self.filter_empty_locus_nearest_loctions()
-            self.filter_empty_locus_get_nearest_cluster()
-            self.filter_empty_locus_get_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_nearest_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_nearest_loctions()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_nearest_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_nearest_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
+            self.locus_get_cluster()
 
 
         finally:
@@ -115,7 +159,7 @@ class SocketTest(User):
     def locus_nearest_loctions(self):
         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getNearestLocation"
-        data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39)+ 0.6721449}]
+        data_cluster["params"] = [choice(self.base_coordinates)]
         message_cluster = json.dumps(data_cluster)
         start_time = time.time()
         try:
@@ -131,7 +175,7 @@ class SocketTest(User):
     def locus_get_nearest_cluster(self):
         data_cluster = self.data_other.copy()  # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getNearestCluster"
-        data_cluster["params"] = [{"latitude": randint(55, 58) + 0.8631039, "longitude": randint(37, 39) + 0.6721449}]
+        data_cluster["params"] = [choice(self.base_coordinates)]
         message_cluster = json.dumps(data_cluster)
         start_time = time.time()
         try:
@@ -148,11 +192,10 @@ class SocketTest(User):
         data_cluster = self.data_other.copy() # Копируем data, чтобы избежать изменения оригинала
         data_cluster["method"] = "v1_getClusters"
         data_cluster["params"] = [
-            {"north_west":
-                 {"latitude": randint(55, 59) + 0.88584975247564, "longitude": randint(37, 39) + 0.49739196728512},
-             "south_east":
-                 {"latitude": randint(55, 59) + 0.62758487182953, "longitude": randint(37, 39) + 0.7548840327148},
-             "zoom": randint(10, 17)}
+            {
+                "north_west": {"latitude": 55.88584975247564, "longitude": 37.49739196728512},
+                "south_east": {"latitude": 55.62758487182953, "longitude": 37.7548840327148},
+                 "zoom": randint(1, 17)}
         ]
         message_cluster = json.dumps(data_cluster)
         start_time = time.time()
