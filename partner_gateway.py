@@ -165,6 +165,7 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
+            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='nearest_loctions')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
@@ -181,6 +182,7 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
+            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='get_nearest_cluster')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
@@ -202,6 +204,7 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
+            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='get_cluster')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='get_cluster', e=e)
