@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
+
 class SocketTest(User):
     wait_time = between(2, 3)
     data_login = {
@@ -96,8 +97,6 @@ class SocketTest(User):
             self.locus_nearest_loctions()
             time.sleep(1)
             self.locus_get_cluster()
-            self.locus_get_cluster()
-            self.locus_get_cluster()
             self.locus_get_nearest_cluster()
             self.locus_get_cluster()
             time.sleep(1)
@@ -108,32 +107,18 @@ class SocketTest(User):
             self.locus_get_cluster()
             time.sleep(1)
             self.locus_get_cluster()
-            self.locus_get_cluster()
             self.locus_get_nearest_cluster()
             self.locus_get_cluster()
             time.sleep(1)
             self.locus_get_cluster()
             self.locus_get_cluster()
             time.sleep(1)
-            self.locus_get_cluster()
             self.locus_get_cluster()
             self.locus_get_cluster()
             self.locus_nearest_loctions()
             time.sleep(1)
             self.locus_get_cluster()
             self.locus_get_cluster()
-            self.locus_get_cluster()
-            self.locus_get_nearest_cluster()
-            self.locus_get_cluster()
-            time.sleep(1)
-            self.locus_get_cluster()
-            self.locus_get_cluster()
-            self.locus_get_cluster()
-            time.sleep(1)
-            self.locus_get_cluster()
-            time.sleep(1)
-            self.locus_get_cluster()
-            self.locus_get_cluster()
             self.locus_get_nearest_cluster()
             self.locus_get_cluster()
             time.sleep(1)
@@ -141,9 +126,14 @@ class SocketTest(User):
             self.locus_get_cluster()
             time.sleep(1)
             self.locus_get_cluster()
+            self.locus_get_nearest_cluster()
+            self.locus_get_cluster()
+            time.sleep(1)
             self.locus_get_cluster()
             self.locus_get_cluster()
-
+            time.sleep(1)
+            self.locus_get_cluster()
+            self.locus_get_cluster()
 
         finally:
             # Закрыть соединение после выполнения всех задач
@@ -165,7 +155,6 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
-            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='nearest_loctions')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='nearest_loctions', e=e)
@@ -182,7 +171,6 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
-            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='get_nearest_cluster')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='get_nearest_cluster', e=e)
@@ -204,7 +192,6 @@ class SocketTest(User):
         try:
             self.ws.send(message_cluster)  # Отправка сообщения
             response_cluster = self.ws.recv()  # Получение ответа
-            logging.info(response_cluster)
             self.success_request(start_time=start_time, response=response_cluster, name='get_cluster')
         except WebSocketConnectionClosedException as e:
             self.exception_request(start_time=start_time, name='get_cluster', e=e)
@@ -340,3 +327,6 @@ class SocketTest(User):
 # запуск из директории с файлом partner_gateway.py
 # locust -f partner_gateway.py
 #locust -f test_script.py -u 1000 -r 100 --headless запуск в хендрежиме
+
+# locust -f partner_gateway.py --master  создать мастер
+# locust -f partner_gateway.py --worker --master-host=127.0.0.1 Добавить воркер
